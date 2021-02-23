@@ -3,7 +3,8 @@ const { addUser, loginUser, getAllUsers, getAllBlogsByUser, deleteUser } = requi
 const { authenticate } = require("../middlewares/authenticate");
 const router = new express.Router();
 
-router.post("/user", addUser)
+router
+.post("/user", addUser)
 .post("/user/login", loginUser)
 .get("/users", getAllUsers)
 .get("/allblogs", authenticate, getAllBlogsByUser)

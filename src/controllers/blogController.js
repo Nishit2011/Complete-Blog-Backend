@@ -1,65 +1,105 @@
 const Blog = require("../models/blog");
 
+exports.addBlog = async (req, res, next) => {
+  try {
+    const blog = await new Blog({ ...req.body, creator: req.user._id });
+    await blog.populate("users").execPopulate();
+    await blog.save();
 
-exports.addBlog = async (req, res, next)=>{
-    try {
-        const blog = await new Blog({...req.body, creator: req.user._id});
-        await blog.populate("users").execPopulate()
-        await blog.save();
-        
-        res.status(201).send({success: true, blog})
-    } catch (error) {
+    res.status(201).send({ success: true, blog });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+};
 
-        res.status(400).json({error})
-    }
-
-
-}
-
-exports.getBlogsById = async(req, res, next) =>{
-    
-    try {
+exports.getBlogsById = async (req, res, next) => {
+  try {
     const blogId = req.params.id;
-    const blog = await Blog.findOne({_id:blogId, creator: req.user._id});
+    const blog = await Blog.findOne({ _id: blogId, creator: req.user._id });
     console.log(blog);
-    res.send({success: true, blog});
+    res.send({ success: true, blog });
+  } catch (error) {
+    res.status(500).send();
+  }
+};
 
-    } catch (error) {
-        res.status(500).send()
-    }
-}
+exports.editBlogById = async (req, res, next) => {
+  const blogId = req.params.id;
+  const args = Object.keys(req.body);
 
+  try {
+    const blog = await Blog.findById(blogId);
+    if (!blog) return "No such blog exists";
 
-exports.editBlogById = async (req, res, next) =>{
+    const updatesAllowed = ["title", "content"];
+
+    const bool = args.every((updateField) =>
+      updatesAllowed.includes(updateField)
+    );
+    if (!bool) return res.send("Please enter correct fields");
+    args.map((arg) => {
+      blog[arg] = req.body[arg];
+    });
+    await blog.save();
+    res.send(blog);
+  } catch (error) {
+    res.status(500).send();
+  }
+};
+
+exports.deleteBlogById = async (req, res, next) => {
+  const blogId = req.params.id;
+  try {
+    const blog = await Blog.findOne({ _id: blogId, creator: req.user._id });
+    await blog.remove();
+    res.send({ success: true, message: "Deleted successfully!!!" });
+  } catch (error) {
+    res.status(500).send("Error");
+  }
+};
+
+exports.addComment = async (req, res, next) => {
+  try {
+    const user = req.user._id;
     const blogId = req.params.id;
-    const args = Object.keys(req.body)
+    const blog = await Blog.findById(blogId);
+    if (!blog) return res.send("No blog exists");
+    blog.comments.push({ content: req.body.content, postedBy: user });
+    // await blog.populate("creator").execPopulate();
+    // await blog.populate("comments.postedBy").execPopulate();
+    await blog.save();
+    res.send({ success: true, message: "Comment added", blog });
+  } catch (error) {
+    res.status(500).send(JSON.stringify(error));
+  }
+};
+
+exports.getAllCommentsByBlogId = async (req, res, next) => {
+  const blogId = req.params.id;
+  try {
+    const blog = await Blog.findOne({ _id: blogId, creator: req.user._id });
+    if (!blog) return res.send("No blog exists");
+    await blog.populate("creator").execPopulate();
+    await blog.populate("comments.postedBy").execPopulate();
+    res.send(blog);
+  } catch (error) {
+    res.status(500).send();
+  }
+};
+
+exports.deleteComment = async (req, res, next) =>{
+    try {
+    const {blogid, commentid} = req.params;
+    const blog = await Blog.findOne({_id: blogid});
    
-    try {
-        const blog = await Blog.findById(blogId);
-        if(!blog) return "No such blog exists"
-        
-        const updatesAllowed = ["title", "content"];
-
-        const bool = args.every(updateField =>  updatesAllowed.includes(updateField))
-        if(!bool) return res.send("Please enter correct fields")
-        args.map(arg=>{
-            blog[arg] = req.body[arg]
-        })
-        await blog.save();
-        res.send(blog)
-
+    if(!blog) return res.send("Blog doesn't exist.")
+        console.log(blog)
+   
+   
+   // res.send(updatedBlog)
     } catch (error) {
-        res.status(500).send()
+        res.send(error)
     }
-}
-
-exports.deleteBlogById = async (req, res, next) =>{
-    const blogId = req.params.id;
-    try {
-        const blog = await Blog.findById(blogId);
-        await blog.remove()
-        res.send({success: true, message: "Deleted successfully!!!"})
-    } catch (error) {
-        res.status(500).send('Error')
-    }
+   
+    
 }

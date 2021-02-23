@@ -49,6 +49,23 @@ userSchema.virtual("blogs",{
     foreignField: "creator"
 })
 
+userSchema.virtual("blogList", {
+  ref: "User",
+  localField: "_id",
+  foreignField: "postedBy"
+})
+
+
+userSchema.methods.toJSON = function () {
+  const user = this;
+  const userObject = user.toObject();
+  delete userObject.password;
+  delete userObject.tokens;
+  return userObject;
+};
+
+
+
 userSchema.pre("save", async function (req, res, next) {
   const user = this;
   if (user.isModified("password")) {
