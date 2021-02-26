@@ -63,12 +63,29 @@ exports.addComment = async (req, res, next) => {
     const user = req.user._id;
     const blogId = req.params.id;
     const blog = await Blog.findById(blogId);
-    if (!blog) return res.send("No blog exists");
-    blog.comments.push({ content: req.body.content, postedBy: user });
-    // await blog.populate("creator").execPopulate();
-    // await blog.populate("comments.postedBy").execPopulate();
-    await blog.save();
-    res.send({ success: true, message: "Comment added", blog });
+    console.log(JSON.stringify(user));
+    //console.log(blog.comments);
+    if (!blog) {
+      return res.send("No blog exists");
+    } else {
+      // if (blog.comments.postedBy === user && blog.comments.length === 1)
+      //   return res.send(
+      //     "Already commented! Please delete your comment to add new comment"
+      //   );
+
+      const doesCommentexists = blog.comments.filter(
+        (comment) => JSON.stringify(comment.postedBy) === JSON.stringify(user)
+      );
+      if (doesCommentexists.length > 0)
+        return res.send(
+          "Already commented! Please delete your comment to add new comment"
+        );
+      blog.comments.push({ content: req.body.content, postedBy: user });
+      // await blog.populate("creator").execPopulate();
+      // await blog.populate("comments.postedBy").execPopulate();
+      await blog.save();
+      res.send({ success: true, message: "Comment added", blog });
+    }
   } catch (error) {
     res.status(500).send(JSON.stringify(error));
   }
@@ -87,19 +104,25 @@ exports.getAllCommentsByBlogId = async (req, res, next) => {
   }
 };
 
-exports.deleteComment = async (req, res, next) =>{
-    try {
-    const {blogid, commentid} = req.params;
-    const blog = await Blog.findOne({_id: blogid});
-   
-    if(!blog) return res.send("Blog doesn't exist.")
-        console.log(blog)
-   
-   
-   // res.send(updatedBlog)
-    } catch (error) {
-        res.send(error)
-    }
-   
-    
-}
+//logged in user can delete only his comments
+//postedBy id === req.user._id
+
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const { blogid, commentid } = req.params;
+    const blog = await Blog.findOne({ _id: blogid });
+
+    if (!blog) return res.send("Blog doesn't exist.");
+
+    // res.send(updatedBlog)
+    const updateBlog = blog.comments.filter((comment, index) => {
+      if (JSON.stringify(comment._id) === JSON.stringify(commentid)) {
+        blog.comments.splice(index, 1);
+      }
+    });
+    await blog.save();
+    res.send(blog);
+  } catch (error) {
+    res.send(error);
+  }
+};
