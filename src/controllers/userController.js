@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const User = require("../models/user");
+const ErrorResponse = require("../../utils/error");
 
 exports.addUser = async (req, res, next) => {
   const user = await new User(req.body);
@@ -22,7 +23,7 @@ exports.loginUser = async (req, res, next) => {
 
     res.send({ success: true, user });
   } catch (error) {
-    res.status(401).send({ success: false, message: error });
+    next(new ErrorResponse("Bad Request", 401));
   }
 };
 
@@ -33,7 +34,7 @@ exports.getAllUsers = async (req, res, next) => {
     const count = users.length;
     res.json({ success: true, count, users });
   } catch (error) {
-    res.status(500).send("Server Error!");
+    next(new ErrorResponse());
   }
 };
 
@@ -45,7 +46,7 @@ exports.getAllBlogsByUser = async (req, res, next) => {
     const count = req.user.blogs.length;
     res.json({ count, blogs: req.user.blogs });
   } catch (error) {
-    res.status(500).send();
+    next(new ErrorResponse());
   }
 };
 
@@ -60,6 +61,6 @@ exports.deleteUser = async (req, res, next) => {
     await user.remove();
     res.send({ success: true, message: "Deleted Successfully" });
   } catch (error) {
-    res.status(500).send("Server Error!");
+    next(new ErrorResponse());
   }
 };

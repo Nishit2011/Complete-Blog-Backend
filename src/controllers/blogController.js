@@ -1,3 +1,4 @@
+const ErrorResponse = require("../../utils/error");
 const Blog = require("../models/blog");
 
 exports.addBlog = async (req, res, next) => {
@@ -8,7 +9,7 @@ exports.addBlog = async (req, res, next) => {
 
     res.status(201).send({ success: true, blog });
   } catch (error) {
-    res.status(400).json({ error });
+    next(new ErrorResponse("Can't create account.", 400));
   }
 };
 
@@ -19,7 +20,7 @@ exports.getBlogsById = async (req, res, next) => {
     console.log(blog);
     res.send({ success: true, blog });
   } catch (error) {
-    res.status(500).send();
+    next(new ErrorResponse("Can't fetch blogs", 500));
   }
 };
 
@@ -36,14 +37,14 @@ exports.editBlogById = async (req, res, next) => {
     const bool = args.every((updateField) =>
       updatesAllowed.includes(updateField)
     );
-    if (!bool) return res.send("Please enter correct fields");
+    if (!bool) return next(new ErrorResponse("Please enter correct fields"));
     args.map((arg) => {
       blog[arg] = req.body[arg];
     });
     await blog.save();
     res.send(blog);
   } catch (error) {
-    res.status(500).send();
+    next(new ErrorResponse("Can't Edit", 500));
   }
 };
 
@@ -54,7 +55,7 @@ exports.deleteBlogById = async (req, res, next) => {
     await blog.remove();
     res.send({ success: true, message: "Deleted successfully!!!" });
   } catch (error) {
-    res.status(500).send("Error");
+    next(new ErrorResponse());
   }
 };
 
@@ -87,7 +88,7 @@ exports.addComment = async (req, res, next) => {
       res.send({ success: true, message: "Comment added", blog });
     }
   } catch (error) {
-    res.status(500).send(JSON.stringify(error));
+    next(new ErrorResponse());
   }
 };
 
@@ -100,13 +101,9 @@ exports.getAllCommentsByBlogId = async (req, res, next) => {
     await blog.populate("comments.postedBy").execPopulate();
     res.send(blog);
   } catch (error) {
-    res.status(500).send();
+    next(new ErrorResponse());
   }
 };
-
-//logged in user can delete only his comments
-//postedBy id === req.user._id
-
 exports.deleteComment = async (req, res, next) => {
   try {
     const { blogid, commentid } = req.params;
@@ -123,6 +120,6 @@ exports.deleteComment = async (req, res, next) => {
     await blog.save();
     res.send(blog);
   } catch (error) {
-    res.send(error);
+    next(new ErrorResponse());
   }
 };

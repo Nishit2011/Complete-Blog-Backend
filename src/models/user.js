@@ -43,18 +43,17 @@ const userSchema = mongoose.Schema(
   }
 );
 
-userSchema.virtual("blogs",{
-    ref: "Blog",
-    localField: "_id",
-    foreignField: "creator"
-})
+userSchema.virtual("blogs", {
+  ref: "Blog",
+  localField: "_id",
+  foreignField: "creator",
+});
 
 userSchema.virtual("blogList", {
   ref: "User",
   localField: "_id",
-  foreignField: "postedBy"
-})
-
+  foreignField: "postedBy",
+});
 
 userSchema.methods.toJSON = function () {
   const user = this;
@@ -63,8 +62,6 @@ userSchema.methods.toJSON = function () {
   delete userObject.tokens;
   return userObject;
 };
-
-
 
 userSchema.pre("save", async function (req, res, next) {
   const user = this;
@@ -91,11 +88,11 @@ userSchema.methods.getJWT = async function (req, res, next) {
   return token;
 };
 
-userSchema.pre("remove", async function(req,res, next){
-    const user = this;
-   const blogs = await Blog.deleteMany({creator: user._id});
-    next()
-})
+userSchema.pre("remove", async function (req, res, next) {
+  const user = this;
+  const blogs = await Blog.deleteMany({ creator: user._id });
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

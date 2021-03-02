@@ -1,0 +1,42 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Blog Engine",
+    "description": "Node.js Blog Application API",
+    "contact": { "name": "Nishit Ranjan" },
+    "servers": ["http://localhost:3001"]
+  },
+  "tags": [
+    {
+      "name": "User API",
+      "description": "All routes"
+    }
+  ],
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "integer"
+        },
+        "password": {
+          "type": "integer"
+        },
+        "role": {
+          "type": "string"
+        },
+        "tokens": [
+          {
+            "token": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

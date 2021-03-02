@@ -3,27 +3,41 @@ const colors = require("colors");
 const connectDB = require("./db/mongoose");
 const blogRoutes = require("./routes/blogRoutes");
 const userRoutes = require("./routes/userRoute");
-// const User = require("./models/user");
+const errorHandler = require("./middlewares/errorHandler");
+// const swaggerJsDoc = require("swagger-jsdoc");
+// const swaggerUi = require("swagger-ui-express");
+// const swaggerJson = require("../swagger.json");
 
 connectDB();
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
+
+// Extended: https://swagger.io/specification/#infoObject
+// const swaggerOptions = {
+//   swaggerDefinition: swaggerJson,
+
+//   apis: [blogRoutes, userRoutes],
+// };
+
+// const swaggerDocs = swaggerJsDoc(swaggerOptions);
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 app.use(blogRoutes);
 app.use(userRoutes);
+app.use(errorHandler);
 
-
-
-// const main = async () =>{
-// const user  = await User.findById('6033549b0f1c0ce21e7373cc');
-// await user.populate("blogs").execPopulate();
-// console.log(user.blogs)
-// }
-
-// main()
+app.use("*", (req, res) => {
+  res.status(404).json({
+    message: "The requested resource was not found",
+  });
+});
+app.use("/", (req, res) => {
+  res.send("Blog Backend is up!!");
+});
 
 app.listen(PORT, () => {
-  console.log(`Server is listening on ${PORT}`.bold.yellow);
+  console.log(`The Server is listening on ${PORT}`.bold.yellow);
 });
